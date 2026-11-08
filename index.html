@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Fanoos UI — Local-First AI Workbench for Ollama</title>
+    <meta name="description" content="Fanoos UI is a free, open-source, privacy-respecting AI chat interface that runs entirely on your machine via Ollama. Agentic tool-calling, deep thinking, web search, voice mode, canvas editing, and more — your data never leaves your computer.">
+    <meta name="keywords" content="Fanoos UI, Ollama, local AI, LLM interface, private AI chat, open source, self-hosted AI, agentic tools, deep thinking, local LLM">
+    <meta name="author" content="Shayan">
+    <meta name="theme-color" content="#14100c" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f7f1e6" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/svg+xml" href="assets/sprites/logo.svg">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/katex.min.css" crossorigin="anonymous">
+    <script src="assets/js/katex.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="app" id="app">
+        <aside class="sidebar" id="sidebar" aria-label="Chat navigation">
+            <div class="side-top">
+                <button class="icon-btn" id="sideClose" title="Close sidebar" aria-label="Close sidebar">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-panel" />
+                    </svg>
+                </button>
+                <button class="icon-btn" id="newChatBtn" title="New chat (Ctrl+Shift+O)" aria-label="New chat">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-edit" />
+                    </svg>
+                </button>
+            </div>
+            <div class="group-label">
+                <img class="ic" src="assets/sprites/logo.svg" alt="">Fanoos UI
+            </div>
+            <div class="search-wrap">
+                <svg class="ic">
+                    <use href="assets/sprites/sprites.svg#i-search" />
+                </svg>
+                <input id="chatSearch" type="text" placeholder="Search chats, tags, content…  (Ctrl+K)" autocomplete="off" aria-label="Search chats">
+            </div>
+            <div id="tagRow" aria-label="Tag filters"></div>
+            <nav class="chat-list" id="chatList" aria-label="Chat history"></nav>
+            <button class="side-btn" id="archToggle" title="Toggle archived chats"></button>
+            <footer class="side-foot">
+                <div class="conn" title="Ollama connection status">
+                    <span class="conn-dot" id="connDot"></span>
+                    <span class="conn-text" id="connText">Checking connection…</span>
+                </div>
+                <button class="side-btn" id="memoryBtn" title="What Fanoos remembers about you (Ctrl+Shift+M)">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-brain" />
+                    </svg>Memory </button>
+                <button class="side-btn" id="settingsBtn" title="Settings">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-gear" />
+                    </svg>Settings </button>
+                <a class="side-btn" href="admin.html" title="Model management & system prompt">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-zap" />
+                    </svg>Admin panel </a>
+            </footer>
+        </aside>
+        <div class="backdrop" id="backdrop"></div>
+        <main class="main" id="main">
+            <header class="topbar">
+                <button class="icon-btn" id="sideToggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-panel" />
+                    </svg>
+                </button>
+                <button class="model-btn placeholder" id="modelBtn" aria-haspopup="true" title="Select model">
+                    <span id="modelName">Select a model</span>
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-chevron" />
+                    </svg>
+                </button>
+                <div class="mode-group" role="group" aria-label="Reasoning and search modes">
+                    <button id="deepThinkBtn" title="DeepThink — show and time the model's reasoning">
+                        <svg class="ic">
+                            <use href="assets/sprites/sprites.svg#i-brain" />
+                        </svg>
+                        <span class="lbl">DeepThink</span>
+                    </button>
+                    <button id="effortBtn" title="Thinking effort — click to cycle low / med / high">effort <span id="effortBadge">med</span>
+                    </button>
+                    <button id="searchModeBtn" title="Search mode — ground answers in live web sources">
+                        <svg class="ic">
+                            <use href="assets/sprites/sprites.svg#i-globe" />
+                        </svg>
+                        <span class="lbl">Search</span>
+                    </button>
+                </div>
+                <div class="top-right">
+                    <button class="icon-btn" id="voiceModeBtn" title="Voice conversation mode">
+                        <svg class="ic">
+                            <use href="assets/sprites/sprites.svg#i-mic" />
+                        </svg>
+                    </button>
+                    <button class="icon-btn" id="statsBtn" title="Usage statistics (Ctrl+Shift+U)">
+                        <svg class="ic">
+                            <use href="assets/sprites/sprites.svg#i-chart" />
+                        </svg>
+                    </button>
+                    <button class="icon-btn" id="helpBtn" title="Keyboard shortcuts (Ctrl+/)">
+                        <svg class="ic">
+                            <use href="assets/sprites/sprites.svg#i-help" />
+                        </svg>
+                    </button>
+                    <button class="icon-btn" id="exportBtn" title="Export this chat">
+                        <svg class="ic">
+                            <use href="assets/sprites/sprites.svg#i-download" />
+                        </svg>
+                    </button>
+                    <button class="icon-btn" id="clearChatBtn" title="Clear this chat">
+                        <svg class="ic">
+                            <use href="assets/sprites/sprites.svg#i-trash" />
+                        </svg>
+                    </button>
+                    <button class="icon-btn" id="themeToggle" title="Toggle light / dark theme">
+                        <svg class="ic i-sun">
+                            <use href="assets/sprites/sprites.svg#i-sun" />
+                        </svg>
+                        <svg class="ic i-moon">
+                            <use href="assets/sprites/sprites.svg#i-moon" />
+                        </svg>
+                    </button>
+                </div>
+            </header>
+            <div class="chat-scroll" id="chatScroll">
+                <div class="chat-content">
+                    <div class="empty-wrap" id="emptyWrap">
+                        <img class="empty-logo" src="assets/sprites/logo.svg" alt="Fanoos lantern" width="64" height="64">
+                        <h1 class="greeting" id="greeting">What can I help with?</h1>
+                    </div>
+                    <div class="messages" id="messages" role="log" aria-label="Conversation" aria-live="polite"></div>
+                    <div class="composer-dock">
+                        <div class="composer" id="composer">
+                            <div class="attach-row" id="attachRow"></div>
+                            <textarea id="promptInput" rows="1" placeholder="Message Fanoos AI…  ( / for commands · drop or paste files )" autocomplete="off" aria-label="Message input"></textarea>
+                            <div class="composer-row">
+                                <div class="row-left">
+                                    <button class="icon-btn" id="attachBtn" title="Attach files — txt, md, code, csv, json, pdf, audio, images" aria-label="Attach files">
+                                        <svg class="ic">
+                                            <use href="assets/sprites/sprites.svg#i-clip" />
+                                        </svg>
+                                    </button>
+                                    <button class="icon-btn" id="toolsBtn" title="Powers — camera, screen, voice, canvas" aria-label="Tools and powers">
+                                        <svg class="ic">
+                                            <use href="assets/sprites/sprites.svg#i-zap" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="row-right">
+                                    <span class="ctx-meter" id="ctxMeter" hidden aria-hidden="true"><i></i></span>
+                                    <span class="tok-count" id="tokCount" aria-hidden="true"></span>
+                                    <button class="icon-btn" id="micBtn" title="Dictate" aria-label="Dictate" hidden>
+                                        <svg class="ic">
+                                            <use href="assets/sprites/sprites.svg#i-mic" />
+                                        </svg>
+                                    </button>
+                                    <button class="send-btn" id="sendBtn" title="Send message" aria-label="Send message" disabled>
+                                        <svg class="ic i-send">
+                                            <use href="assets/sprites/sprites.svg#i-send" />
+                                        </svg>
+                                        <svg class="ic i-stop">
+                                            <use href="assets/sprites/sprites.svg#i-stop" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="suggestions" id="suggestions" aria-label="Suggestions"></div>
+                        <p class="disclaimer">Fanoos AI runs locally through Ollama — your data never leaves this machine.</p>
+                    </div>
+                </div>
+            </div>
+            <button class="scroll-pill" id="scrollPill" title="Scroll to bottom" aria-label="Scroll to bottom">
+                <svg class="ic">
+                    <use href="assets/sprites/sprites.svg#i-chevron" />
+                </svg>
+            </button>
+        </main>
+    </div>
+    <aside class="side-panel" id="previewPanel" aria-label="Artifact preview">
+        <div class="panel-head">
+            <span class="panel-title" id="previewTitle">Artifact preview</span>
+            <button class="icon-btn" id="previewClose" title="Close preview" aria-label="Close preview">
+                <svg class="ic">
+                    <use href="assets/sprites/sprites.svg#i-x" />
+                </svg>
+            </button>
+        </div>
+        <iframe id="previewFrame" sandbox="allow-scripts" title="Artifact preview"></iframe>
+    </aside>
+    <aside class="side-panel" id="canvasPanel" aria-label="Canvas editor">
+        <div class="panel-head">
+            <span class="panel-title">Canvas — Fanoos edits with you</span>
+            <span class="panel-status" id="canvasStatus" aria-live="polite"></span>
+            <button class="icon-btn" id="canvasClose" title="Close canvas" aria-label="Close canvas">
+                <svg class="ic">
+                    <use href="assets/sprites/sprites.svg#i-x" />
+                </svg>
+            </button>
+        </div>
+        <textarea id="canvasArea" spellcheck="false" aria-label="Canvas document" placeholder="Write or paste a document here. Select a passage and Fanoos rewrites just that part — or transform the whole doc with the tools below."></textarea>
+        <div id="canvasTools">
+            <button class="cv-btn" data-cact="improve">
+                <svg class="ic">
+                    <use href="assets/sprites/sprites.svg#i-spark" />
+                </svg>Improve writing </button>
+            <button class="cv-btn" data-cact="grammar">
+                <svg class="ic">
+                    <use href="assets/sprites/sprites.svg#i-check" />
+                </svg>Fix grammar </button>
+            <button class="cv-btn" data-cact="summarize">
+                <svg class="ic">
+                    <use href="assets/sprites/sprites.svg#i-file" />
+                </svg>Summarize </button>
+            <button class="cv-btn" data-cact="continue">
+                <svg class="ic">
+                    <use href="assets/sprites/sprites.svg#i-play" />
+                </svg>Continue writing </button>
+            <button class="cv-btn" data-cact="custom">
+                <svg class="ic">
+                    <use href="assets/sprites/sprites.svg#i-edit" />
+                </svg>Custom… </button>
+        </div>
+    </aside>
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+            <div class="modal-head">
+                <h2 id="settingsTitle">Settings</h2>
+                <button class="icon-btn" id="settingsClose" aria-label="Close settings">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-x" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <section>
+                    <h3>Profile &amp; server</h3>
+                    <label class="f-label" for="setName">Your name</label>
+                    <input type="text" id="setName" placeholder="Shayan">
+                    <label class="f-label" for="setHost">Ollama host URL</label>
+                    <input type="text" id="setHost" placeholder="http://localhost:11434" spellcheck="false">
+                    <p class="hint">Accessing from another device? Use your PC's LAN IP (e.g. <code>http://192.168.1.100:11434</code>) and restart Ollama with <code>OLLAMA_ORIGINS=* ollama serve</code>
+                    </p>
+                </section>
+                <section>
+                    <h3>Custom instructions</h3>
+                    <label class="f-label" for="setSystem">Applied to every chat <span class="muted">(on top of the Fanoos AI system prompt — editable in Admin)</span>
+                    </label>
+                    <textarea id="setSystem" rows="3" placeholder="e.g. Call me Shayan. I'm a backend developer — prefer Python. Keep answers concise."></textarea>
+                </section>
+                <section>
+                    <h3>Behavior</h3>
+                    <div class="switch-row">
+                        <span>Stream responses</span>
+                        <label class="switch">
+                            <input type="checkbox" id="setStream">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span>Auto-generate chat titles</span>
+                        <label class="switch">
+                            <input type="checkbox" id="setTitle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span>Enter to send <span class="muted">(Shift+Enter = new line)</span>
+                        </span>
+                        <label class="switch">
+                            <input type="checkbox" id="setEnter">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span>Auto-continue cut-off responses</span>
+                        <label class="switch">
+                            <input type="checkbox" id="setCont">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span>Summarize old turns when context fills</span>
+                        <label class="switch">
+                            <input type="checkbox" id="setAutoSum">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span>Auto-extract memories from what I say</span>
+                        <label class="switch">
+                            <input type="checkbox" id="setAutoMem">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span>Send remembered facts to the model</span>
+                        <label class="switch">
+                            <input type="checkbox" id="setUseMem">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </section>
+                <section>
+                    <h3>Generation parameters</h3>
+                    <div class="range-row">
+                        <label for="setTemp">Temperature</label>
+                        <output id="tempVal">0.7</output>
+                    </div>
+                    <input type="range" id="setTemp" min="0" max="2" step="0.1" value="0.7">
+                    <div class="range-row">
+                        <label for="setTopP">Top P</label>
+                        <output id="topPVal">0.90</output>
+                    </div>
+                    <input type="range" id="setTopP" min="0" max="1" step="0.05" value="0.9">
+                    <div class="grid2">
+                        <div>
+                            <label class="f-label" for="setCtx">Context length</label>
+                            <select id="setCtx">
+                                <option>2048</option>
+                                <option>4096</option>
+                                <option>8192</option>
+                                <option>16384</option>
+                                <option>32768</option>
+                                <option>65536</option>
+                                <option>131072</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="f-label" for="setKeep">Keep model loaded</label>
+                            <select id="setKeep">
+                                <option value="0">Don't keep</option>
+                                <option value="5m">5 minutes</option>
+                                <option value="15m">15 minutes</option>
+                                <option value="30m">30 minutes</option>
+                                <option value="1h">1 hour</option>
+                                <option value="-1">Forever</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label class="f-label" for="setSeed">Seed <span class="muted">(blank = random)</span>
+                    </label>
+                    <input type="number" id="setSeed" placeholder="random">
+                </section>
+                <section>
+                    <h3>Web search server</h3>
+                    <label class="f-label" for="setSearchServer">Python search server URL</label>
+                    <input type="text" id="setSearchServer" placeholder="http://localhost:8777" spellcheck="false">
+                    <p class="hint">Run <code>python search_server.py</code> alongside the app. Wikipedia works without it; full web search + page reading needs the server. </p>
+                </section>
+                <section>
+                    <h3>Voice</h3>
+                    <label class="f-label" for="setVoice">Read-aloud voice</label>
+                    <select id="setVoice">
+                        <option value="">System default voice</option>
+                    </select>
+                    <div class="range-row">
+                        <label for="setRate">Speaking rate</label>
+                    </div>
+                    <input type="range" id="setRate" min="0.5" max="2" step="0.1" value="1">
+                </section>
+                <section>
+                    <h3>Data — backup &amp; restore</h3>
+                    <div class="grid2">
+                        <button class="e-btn" id="backupExportBtn">⬇ Export full backup</button>
+                        <button class="e-btn" id="backupImportBtn">⬆ Import / merge backup</button>
+                    </div>
+                    <input type="file" id="backupFile" accept="application/json,.json" hidden>
+                    <p class="hint">All data (chats, memory, settings, stats) is saved to <code>data.json</code> via <code>api.php</code>. Importing lets you <b>merge</b> or <b>replace</b>. </p>
+                </section>
+            </div>
+            <div class="modal-foot">
+                <button class="btn ghost" id="settingsReset">Reset defaults</button>
+                <button class="btn primary" id="settingsSave">Save</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="memoryModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="memoryTitle">
+            <div class="modal-head">
+                <h2 id="memoryTitle">Persistent memory</h2>
+                <button class="icon-btn" id="memoryClose" aria-label="Close memory">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-x" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="hint">Facts Fanoos carries into <b>every</b> chat. Click any memory to edit it inline. In chat, use <code>/remember …</code> and <code>/forget …</code>
+                </p>
+                <div id="memoryList" style="margin-top:12px"></div>
+                <div class="mem-add">
+                    <input type="text" id="memoryAddInput" class="pop-input" placeholder="Add a memory — e.g. &quot;I prefer Python over JS&quot;" style="margin:0" aria-label="New memory">
+                    <button class="e-btn primary" id="memoryAddBtn">Remember</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="statsModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="statsTitle">
+            <div class="modal-head">
+                <h2 id="statsTitle">Usage</h2>
+                <button class="icon-btn" id="statsClose" aria-label="Close stats">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-x" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="statsBody"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="shortcutsModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+            <div class="modal-head">
+                <h2 id="shortcutsTitle">Keyboard shortcuts</h2>
+                <button class="icon-btn" id="shortcutsClose" aria-label="Close shortcuts">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-x" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="kbd-grid">
+                    <span>
+                        <kbd>Enter</kbd> Send message </span>
+                    <span>
+                        <kbd>Shift</kbd>+ <kbd>Enter</kbd> New line </span>
+                    <span>
+                        <kbd>Ctrl</kbd>+ <kbd>Shift</kbd>+ <kbd>O</kbd> New chat </span>
+                    <span>
+                        <kbd>Ctrl</kbd>+ <kbd>K</kbd> Search chats </span>
+                    <span>
+                        <kbd>Ctrl</kbd>+ <kbd>B</kbd> Toggle sidebar </span>
+                    <span>
+                        <kbd>Ctrl</kbd>+ <kbd>Shift</kbd>+ <kbd>M</kbd> Memory </span>
+                    <span>
+                        <kbd>Ctrl</kbd>+ <kbd>Shift</kbd>+ <kbd>U</kbd> Usage stats </span>
+                    <span>
+                        <kbd>Ctrl</kbd>+ <kbd>/</kbd> This overlay </span>
+                    <span>
+                        <kbd>/</kbd> Command palette in composer </span>
+                    <span>
+                        <kbd>Esc</kbd> Close anything </span>
+                </div>
+                <p class="hint" style="margin-top:16px">Chat commands: type <code>/</code> for the palette · <code>/remember …</code> save a fact · <code>/forget …</code> remove matching facts · paste or drop images straight into the composer </p>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="voiceModal">
+        <div class="modal" style="width:min(420px,94vw)" role="dialog" aria-modal="true" aria-labelledby="voiceTitle">
+            <div class="modal-head">
+                <h2 id="voiceTitle">Voice conversation</h2>
+                <button class="icon-btn" id="voiceClose" aria-label="Close voice mode">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-x" />
+                    </svg>
+                </button>
+            </div>
+            <div class="voice-wrap">
+                <button id="voiceBig" aria-label="Push to talk">
+                    <img src="assets/sprites/logo.svg" alt="" width="58" height="58">
+                </button>
+                <div id="voiceState" aria-live="polite">Tap the lantern and speak</div>
+                <label class="voice-opts switch-row" style="padding:0">
+                    <span>Continuous — listen again after Fanoos speaks</span>
+                    <span class="switch">
+                        <input type="checkbox" id="voiceCont">
+                        <span class="slider"></span>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div id="dropOverlay" aria-hidden="true">
+        <div class="drop-box">
+            <svg class="ic">
+                <use href="assets/sprites/sprites.svg#i-zap" />
+            </svg> Drop files to attach them to your next message
+        </div>
+    </div>
+    <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+    <input type="file" id="fileInput" multiple hidden accept="image/*,.txt,.md,.markdown,.csv,.json,.py,.js,.ts,.html,.css,.svg,.yml,.yaml,.sh,.sql,.log,.xml,audio/*,.pdf">
+    <noscript>
+        <p style="padding:30px;font-family:sans-serif;text-align:center">🏮 Fanoos UI needs JavaScript to run.</p>
+    </noscript>
+    <script src="assets/js/script.js"></script>
+</body>
+</html>

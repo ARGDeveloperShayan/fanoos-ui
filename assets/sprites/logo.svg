@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+    <defs>
+        <radialGradient id="fg-glow" cx="50%" cy="46%" r="50%">
+            <stop offset="0%"  stop-color="#ffcf6e" stop-opacity=".85"/>
+            <stop offset="45%" stop-color="#ff9d3c" stop-opacity=".32"/>
+            <stop offset="100%" stop-color="#ff8a2e" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="fg-glass" cx="50%" cy="52%" r="62%">
+            <stop offset="0%"  stop-color="#fff6d8"/>
+            <stop offset="48%" stop-color="#ffcf5e"/>
+            <stop offset="100%" stop-color="#ff8a2e"/>
+        </radialGradient>
+        <linearGradient id="fg-flame" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="45%" stop-color="#ffd257"/>
+            <stop offset="100%" stop-color="#ff9430"/>
+        </linearGradient>
+        <linearGradient id="fg-frame" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#6b5133"/>
+            <stop offset="100%" stop-color="#332414"/>
+        </linearGradient>
+    </defs>
+
+    <circle cx="32" cy="30" r="30" fill="url(#fg-glow)">
+        <animate attributeName="opacity" values=".55;.9;.65;.9;.55" dur="3.4s" repeatCount="indefinite"/>
+    </circle>
+
+    <circle cx="32" cy="6.5" r="3.4" fill="none" stroke="url(#fg-frame)" stroke-width="2.4"/>
+    <path d="M32 9.5v2.5" stroke="url(#fg-frame)" stroke-width="2.4" stroke-linecap="round"/>
+
+    <path d="M18.5 19.5 Q32 7.5 45.5 19.5 Z" fill="url(#fg-frame)"/>
+    <circle cx="32" cy="12.6" r="1.7" fill="#ffcf6e"/>
+
+    <path d="M20 19.5 L44 19.5 L46.4 31 L44 42.5 L20 42.5 L17.6 31 Z" fill="url(#fg-glass)"/>
+
+    <g>
+        <path d="M32 23.5 C36.6 28.6 36.8 33.4 32 38.2 C27.2 33.4 27.4 28.6 32 23.5 Z" fill="url(#fg-flame)">
+            <animate attributeName="opacity" values=".88;1;.92;1;.88" dur="1.9s" repeatCount="indefinite"/>
+        </path>
+        <path d="M32 29 C34.2 31.4 34.3 33.6 32 36 C29.7 33.6 29.8 31.4 32 29 Z" fill="#fff9e6" opacity=".95"/>
+    </g>
+
+    <g stroke="url(#fg-frame)" stroke-width="2.1" stroke-linecap="round" fill="none">
+        <path d="M20 19.5 L17.6 31 L20 42.5"/>
+        <path d="M44 19.5 L46.4 31 L44 42.5"/>
+        <path d="M26 19.8 L25 42.3"/>
+        <path d="M38 19.8 L39 42.3"/>
+        <path d="M18.2 31 H45.8"/>
+    </g>
+
+    <rect x="21" y="42.5" width="22" height="4.4" rx="2.2" fill="url(#fg-frame)"/>
+    <path d="M25 46.9 L39 46.9 L37 52.5 L27 52.5 Z" fill="url(#fg-frame)"/>
+    <path d="M29.5 52.5 L34.5 52.5 L33.6 55.4 L30.4 55.4 Z" fill="#ffcf6e" opacity=".85"/>
+
+    <circle cx="12" cy="22" r="1.1" fill="#ffd257">
+        <animate attributeName="opacity" values="0;1;0" dur="2.6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="52" cy="18" r=".9" fill="#ffd257">
+        <animate attributeName="opacity" values="0;1;0" dur="3.1s" begin=".8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="50" cy="40" r="1" fill="#ffcf6e">
+        <animate attributeName="opacity" values="0;1;0" dur="2.2s" begin="1.5s" repeatCount="indefinite"/>
+    </circle>
+</svg>

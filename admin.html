@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fanoos Admin · Model &amp; System Manager</title>
+    <meta name="description" content="Fanoos UI admin panel — manage Ollama models, pull with live progress, edit the Fanoos AI system prompt, and monitor loaded models.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="assets/sprites/logo.svg">
+    <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+    <div id="gate" aria-label="Admin lock screen">
+        <div class="embers" aria-hidden="true">
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+        </div>
+        <div class="gate-inner">
+            <img src="assets/sprites/logo.svg" alt="Fanoos lantern" class="gate-logo" width="96" height="96">
+            <h1 class="gate-title" id="gateTitle">Fanoos Admin</h1>
+            <p class="gate-sub" id="gateSub">Protected area</p>
+            <form class="gate-form" id="gateForm" autocomplete="off">
+                <input type="password" id="gatePass" placeholder="Password" aria-label="Password">
+                <input type="password" id="gatePass2" placeholder="Confirm password" aria-label="Confirm password" hidden>
+                <button type="submit" class="btn primary" id="gateBtn">Unlock</button>
+                <p class="gate-err" id="gateErr" role="alert"></p>
+            </form>
+            <p class="gate-hint">🔒 Models · system prompt · server settings</p>
+        </div>
+    </div>
+    <div id="adminRoot" hidden>
+        <div class="adm-shell">
+            <aside class="adm-rail">
+                <div class="rail-brand">
+                    <img src="assets/sprites/logo.svg" alt="Fanoos" width="34" height="34">
+                    <span>Fanoos<b>Admin</b></span>
+                </div>
+                <nav class="rail-nav" aria-label="Admin sections">
+                    <button data-view="overview" class="on">
+                        <svg class="ic"><use href="assets/sprites/sprites.svg#i-grid" /></svg><span>Overview</span>
+                    </button>
+                    <button data-view="pull">
+                        <svg class="ic"><use href="assets/sprites/sprites.svg#i-download" /></svg><span>Pull &amp; Create</span>
+                    </button>
+                    <button data-view="prompt">
+                        <svg class="ic"><use href="assets/sprites/sprites.svg#i-edit" /></svg><span>System Prompt</span>
+                    </button>
+                    <button data-view="models">
+                        <svg class="ic"><use href="assets/sprites/sprites.svg#i-layers" /></svg><span>Models</span>
+                    </button>
+                    <button data-view="bench">
+                        <svg class="ic"><use href="assets/sprites/sprites.svg#i-flask" /></svg><span>Test Bench</span>
+                    </button>
+                    <button data-view="security">
+                        <svg class="ic"><use href="assets/sprites/sprites.svg#i-shield" /></svg><span>Security</span>
+                    </button>
+                </nav>
+                <div class="rail-foot">
+                    <button class="rail-conn" id="admConnRow" title="Test the Ollama connection">
+                        <span class="conn-dot" id="admConn"></span>
+                        <span id="admConnText">checking…</span>
+                    </button>
+                    <a class="rail-link" href="index.html">
+                        <svg class="ic"><use href="assets/sprites/sprites.svg#i-send" /></svg>Back to Fanoos UI
+                    </a>
+                    <button class="rail-link" id="lockBtn">
+                        <svg class="ic"><use href="assets/sprites/sprites.svg#i-x" /></svg>Lock panel
+                    </button>
+                </div>
+            </aside>
+            <div class="adm-col">
+                <header class="adm-head">
+                    <div class="adm-heading">
+                        <h1 id="viewTitle">Overview</h1>
+                        <p id="viewSub">Server health, loaded models and quick actions</p>
+                    </div>
+                    <div class="adm-hostbox">
+                        <span class="conn-dot" id="admConnDot"></span>
+                        <input type="text" id="admHost" spellcheck="false" placeholder="http://localhost:11434" aria-label="Ollama host">
+                        <button class="e-btn" id="admHostSave">Apply</button>
+                        <span class="adm-ver" id="admVer">—</span>
+                    </div>
+                </header>
+                <main class="adm-views">
+
+                    <section class="adm-view on" data-v="overview">
+                        <div class="stat-cards">
+                            <div class="stat-card">
+                                <div class="sc-ic"><svg class="ic"><use href="assets/sprites/sprites.svg#i-layers" /></svg></div>
+                                <b id="stModels">0</b>
+                                <span>installed models</span>
+                            </div>
+                            <div class="stat-card">
+                                <div class="sc-ic"><svg class="ic"><use href="assets/sprites/sprites.svg#i-db" /></svg></div>
+                                <b id="stDisk">0 GB</b>
+                                <span>on disk</span>
+                            </div>
+                            <div class="stat-card">
+                                <div class="sc-ic"><svg class="ic"><use href="assets/sprites/sprites.svg#i-zap" /></svg></div>
+                                <b id="stRunning">0</b>
+                                <span>loaded in memory</span>
+                            </div>
+                            <div class="stat-card">
+                                <div class="sc-ic"><svg class="ic"><use href="assets/sprites/sprites.svg#i-chart" /></svg></div>
+                                <b id="stVersion">—</b>
+                                <span>ollama · <em id="stLatency">—</em><em id="stDevices"></em></span>
+                            </div>
+                        </div>
+                        <section class="panel">
+                            <div class="panel-head">
+                                <h2>
+                                    <svg class="ic"><use href="assets/sprites/sprites.svg#i-zap" /></svg>Running now
+                                </h2>
+                                <button class="icon-btn sm" id="psRefresh" title="Refresh">
+                                    <svg class="ic"><use href="assets/sprites/sprites.svg#i-refresh" /></svg>
+                                </button>
+                            </div>
+                            <p class="panel-sub">Models currently held in RAM/VRAM. They load on first message and unload after the keep-alive window.</p>
+                            <div id="psList" class="ps-list"></div>
+                        </section>
+                        <div class="quick-row">
+                            <button class="qa-btn" data-goto="pull">
+                                <svg class="ic"><use href="assets/sprites/sprites.svg#i-download" /></svg>Pull a model
+                            </button>
+                            <button class="qa-btn" data-goto="prompt">
+                                <svg class="ic"><use href="assets/sprites/sprites.svg#i-edit" /></svg>Edit system prompt
+                            </button>
+                            <button class="qa-btn" data-goto="bench">
+                                <svg class="ic"><use href="assets/sprites/sprites.svg#i-flask" /></svg>Run a test
+                            </button>
+                            <button class="qa-btn" data-goto="models">
+                                <svg class="ic"><use href="assets/sprites/sprites.svg#i-layers" /></svg>Browse models
+                            </button>
+                        </div>
+                    </section>
+
+                    <section class="adm-view" data-v="pull">
+                        <section class="panel">
+                            <h2>
+                                <svg class="ic"><use href="assets/sprites/sprites.svg#i-download" /></svg>Catalog
+                            </h2>
+                            <p class="panel-sub">One click starts the pull — progress streams live below. Sizes are approximate downloads.</p>
+                            <div id="catalogGroups"></div>
+                        </section>
+                        <section class="panel">
+                            <h2>
+                                <svg class="ic"><use href="assets/sprites/sprites.svg#i-search" /></svg>Custom pull
+                            </h2>
+                            <div class="form-row">
+                                <input type="text" id="pullName" placeholder="e.g. llama3.2, qwen2.5:7b, deepseek-r1:14b …" spellcheck="false">
+                                <button class="btn primary" id="pullBtn">Pull</button>
+                            </div>
+                            <div id="pullJobs"></div>
+                        </section>
+                        <section class="panel">
+                            <h2>
+                                <svg class="ic"><use href="assets/sprites/sprites.svg#i-canvas" /></svg>Create from Modelfile
+                            </h2>
+                            <div class="form-row">
+                                <select id="createTpl" aria-label="Modelfile template">
+                                    <option value="assistant">Template · Assistant</option>
+                                    <option value="coder">Template · Coder</option>
+                                    <option value="blank">Template · Blank</option>
+                                </select>
+                                <input type="text" id="createName" placeholder="new-model-name" spellcheck="false">
+                            </div>
+                            <textarea id="createFile" rows="7" spellcheck="false">FROM llama3.2
+SYSTEM "You are Fanoos AI — warm, precise, and local-first."
+PARAMETER temperature 0.7
+PARAMETER num_ctx 8192</textarea>
+                            <div class="form-row" style="margin-top:10px">
+                                <span class="hint-inline">Creates a custom model variant on this machine.</span>
+                                <button class="btn primary" id="createBtn">Create</button>
+                            </div>
+                            <pre class="log" id="createLog">— waiting —</pre>
+                        </section>
+                    </section>
+
+                    <section class="adm-view" data-v="prompt">
+                        <section class="panel">
+                            <div class="panel-head">
+                                <h2>
+                                    <svg class="ic"><use href="assets/sprites/sprites.svg#i-brain" /></svg>Fanoos AI system prompt
+                                </h2>
+                                <span class="sys-count" id="sysCount">0 tokens</span>
+                            </div>
+                            <p class="panel-sub">This overrides the built-in Fanoos AI identity for <b>every chat</b>. Leave empty to use the default lantern personality. Custom instructions from Settings are still appended on top.</p>
+                            <div class="qchips" id="sysPresets"></div>
+                            <textarea id="sysPrompt" rows="10" spellcheck="false" placeholder="You are Fanoos AI — the assistant built into Fanoos UI…"></textarea>
+                            <div class="form-row" style="margin-top:12px">
+                                <button class="e-btn" id="sysReset">Reset to default</button>
+                                <span class="hint-inline" style="flex:1"></span>
+                                <button class="btn primary" id="sysSave">Save system prompt</button>
+                            </div>
+                        </section>
+                    </section>
+
+                    <section class="adm-view" data-v="models">
+                        <section class="panel">
+                            <div class="panel-head">
+                                <h2>
+                                    <svg class="ic"><use href="assets/sprites/sprites.svg#i-layers" /></svg>Installed models
+                                </h2>
+                                <div class="panel-tools">
+                                    <select id="libSort" aria-label="Sort models">
+                                        <option value="name">Sort · Name</option>
+                                        <option value="size">Sort · Size</option>
+                                        <option value="date">Sort · Newest</option>
+                                    </select>
+                                    <input type="text" id="libFilter" placeholder="Filter…" spellcheck="false">
+                                    <button class="icon-btn sm" id="libRefresh" title="Refresh">
+                                        <svg class="ic"><use href="assets/sprites/sprites.svg#i-refresh" /></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="libList" class="lib-grid"></div>
+                        </section>
+                    </section>
+
+                    <section class="adm-view" data-v="bench">
+                        <section class="panel">
+                            <h2>
+                                <svg class="ic"><use href="assets/sprites/sprites.svg#i-flask" /></svg>Quick test bench
+                            </h2>
+                            <p class="panel-sub">Fire a one-shot prompt at any model to verify it works — no chat history, raw output. Streaming shows tokens as they arrive.</p>
+                            <div class="bench-controls">
+                                <select id="testModel" aria-label="Test model"></select>
+                                <label class="switch-row slim">
+                                    <span>Stream</span>
+                                    <span class="switch">
+                                        <input type="checkbox" id="testStream" checked>
+                                        <span class="slider"></span>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="range-row">
+                                <label for="testTemp">Temperature</label>
+                                <output id="testTempVal">0.7</output>
+                            </div>
+                            <input type="range" id="testTemp" min="0" max="2" step="0.1" value="0.7">
+                            <label class="f-label" for="testPrompt">Prompt</label>
+                            <textarea id="testPrompt" rows="3" spellcheck="false">Say hello in one sentence.</textarea>
+                            <div class="form-row" style="margin-top:12px">
+                                <button class="btn primary" id="testBtn">
+                                    <svg class="ic"><use href="assets/sprites/sprites.svg#i-play" /></svg>Run
+                                </button>
+                                <button class="btn ghost" id="benchStop" hidden>Stop</button>
+                                <span class="hint-inline" style="flex:1;text-align:right;font-family:var(--font-mono)" id="benchStats"></span>
+                            </div>
+                            <pre class="log bench-log" id="testOut">— output appears here —</pre>
+                        </section>
+                    </section>
+
+                    <section class="adm-view" data-v="security">
+                        <section class="panel">
+                            <h2>
+                                <svg class="ic"><use href="assets/sprites/sprites.svg#i-shield" /></svg>Change admin password
+                            </h2>
+                            <p class="panel-sub">Guards this panel and the shared system-prompt API. Stored <b>bcrypt-hashed</b> on the server ( <code>.fanoos_admin_hash</code>) when PHP is available — otherwise hashed in this browser only.</p>
+                            <p class="hint" style="margin:0 0 14px">Storage mode: <code id="secMode">detecting…</code></p>
+                            <div class="sec-form">
+                                <input type="password" id="newPass" placeholder="New password" autocomplete="new-password">
+                                <input type="password" id="newPass2" placeholder="Confirm new password" autocomplete="new-password">
+                                <button class="btn primary" id="changePassBtn">Change password</button>
+                            </div>
+                        </section>
+                    </section>
+
+                </main>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="inspModal">
+        <div class="modal" style="width:min(720px,94vw)" role="dialog" aria-modal="true">
+            <div class="modal-head">
+                <h2 id="inspTitle">Model</h2>
+                <button class="icon-btn" id="inspClose" aria-label="Close">
+                    <svg class="ic">
+                        <use href="assets/sprites/sprites.svg#i-x" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="inspBody"></div>
+        </div>
+    </div>
+    <div class="toasts" id="toasts"></div>
+    <script src="assets/js/admin.js"></script>
+</body>
+</html>
